@@ -5,6 +5,7 @@ import hashlib
 import sentry_sdk
 from sentry_sdk.integrations.aws_lambda import AwsLambdaIntegration
 import logging
+import epsagon
 
 logger =  logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -13,6 +14,12 @@ sentry_sdk.init(
     integrations=[AwsLambdaIntegration()]
 )
 
+
+epsagon.init(
+    token='b817b19f-3969-4481-8ec0-c7a646dbbb33',
+    app_name='RM Updates',
+    metadata_only=False,
+)
 
 dynamodb = boto3.resource('dynamodb', region_name='ap-south-1')
 lambda_client = boto3.client('lambda', region_name='ap-south-1')
@@ -126,6 +133,7 @@ def getJobs(type):
                 })
     return "Jobs parsed"
 
+@epsagon.lambda_wrapper
 def handler(event, context):
     try:
         logger.info(event)
