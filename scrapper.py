@@ -3,6 +3,7 @@ import hashlib
 
 from params import getParams
 from account import getAccount, login
+from messenger import notificationTemplate, jobTemplate, sendMessage
 
 db = firestore.Client()
 
@@ -28,11 +29,11 @@ def getNotifications(type):
     for i in range(len(li_time_label)):
         date = li_time_label[i].text.strip(' \t\n\r')
         time = div_timeline_item[i].span.text.strip(' \t\n\r').replace('&nbsp','').replace(';','')
-        timelineHeader = div_timeline_item[i].find('h4',attrs={'class':'timeline-header'}).text.strip(' \t\n\r')
-        timelineBody = div_timeline_item[i].find('div',attrs={'class':'timeline-body'}).text
-        timelineHeaderUp = div_timeline_item[i].find('h3',attrs={'class':'timeline-header up'}).text.strip(' \t\n\r')
-        timelineHeaderUp = timelineHeaderUp[len('Posted by : \n              \n              '):]
-        key = '{} : {} : {}'.format(getHash(date + time + timelineHeader + timelineBody[:5]), date, time)
+        heading = div_timeline_item[i].find('h4',attrs={'class':'timeline-header'}).text.strip(' \t\n\r')
+        body = div_timeline_item[i].find('div',attrs={'class':'timeline-body'}).text
+        poster = div_timeline_item[i].find('h3',attrs={'class':'timeline-header up'}).text.strip(' \t\n\r')
+        poster = poster[len('Posted by : \n              \n              '):]
+        key = '{} : {} : {}'.format(getHash(date + time + heading + body[:5]), date, time)
 
         docRef = collectionRef.document(key)
         if not docRef.get().exists:
@@ -40,10 +41,11 @@ def getNotifications(type):
                 'key': key,
                 'date': date,
                 'time': time,
-                'heading': timelineHeader,
-                'body': timelineBody,
-                'poster': timelineHeaderUp
+                'heading': heading,
+                'body': body,
+                'poster': poster
             })
+            sendMessage(label=type, message=notificationTemplate(date, time, heading, body, poster))
     return '{} notifications parsed'.format(type)
 
 def getJobs(type):
@@ -66,13 +68,19 @@ def getJobs(type):
     for i in range(1, len(trs)):
         tds = trs[i].find_all('td')
         if tds[3].find('i')['class'][1] == 'fa-check':
-            docRef = collectionRef.document(tds[0].text)
+            name = tds[0].text
+            appDeadline = tds[2].text
+            dateOfVisit = tds[6].text
+            link = trs[i]['onclick'].replace("void window.open('", '').replace("')", '')
+
+            docRef = collectionRef.document(name)
             if not docRef.get().exists:
                 docRef.set({
-                    'name': tds[0].text,
-                    'appDeadline': tds[2].text,
-                    'dateOfVisit': tds[6].text,
-                    'link': trs[i]['onclick'].replace("void window.open('", '').replace("')", ''),
+                    'name': name,
+                    'appDeadline': appDeadline,
+                    'dateOfVisit': dateOfVisit,
+                    'link': link,
                 })
+                sendMessage(label=type, message=jobTemplate(name, appDeadline, dateOfVisit, link))
 
     return '{} jobs parsed'.format(type)
