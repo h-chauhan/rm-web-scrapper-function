@@ -14,7 +14,7 @@ notificationTemplate = lambda date, time, heading, body, poster: \
 📝  Posted by: {poster}
 """.format(date=date, time=time, heading=heading, body=body, poster=poster)
 
-jobTemplate = lambda name, dateOfVisit, appDeadline, link: \
+jobTemplate = lambda name, appDeadline, dateOfVisit, link: \
 """
 👨‍💻  Job Update
 
