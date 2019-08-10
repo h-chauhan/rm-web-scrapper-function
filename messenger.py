@@ -1,6 +1,6 @@
 import requests
 
-MESSENGER_API = 'https://api.dturmupdates.me/messenger/'
+MESSENGER_API = 'https://dturmupdates.me/messenger/'
 
 notificationTemplate = lambda date, time, heading, body, poster: \
 """
